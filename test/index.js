@@ -85,18 +85,24 @@ setTimeout(() => {
     }
   })(),
 })
-cache3
-  .fetch()
-  .then(data => {
+cache3.fetch().then(data => {
+  examplejs_print(data)
+  assert.equal(examplejs_printLines.join("\n"), "cache3 0"); examplejs_printLines = [];
+})
+cache3.fetch().then(data => {
+  examplejs_print(data)
+  assert.equal(examplejs_printLines.join("\n"), "cache3 0"); examplejs_printLines = [];
+})
+cache3.fetch().then(data => {
+  examplejs_print(data)
+  assert.equal(examplejs_printLines.join("\n"), "cache3 0"); examplejs_printLines = [];
+})
+setTimeout(() => {
+  cache3.fetch().then(data => {
     examplejs_print(data)
     assert.equal(examplejs_printLines.join("\n"), "cache3 0"); examplejs_printLines = [];
   })
-  .then(() => {
-    return cache3.fetch().then(data => {
-      examplejs_print(data)
-      assert.equal(examplejs_printLines.join("\n"), "cache3 0"); examplejs_printLines = [];
-    })
-  })
+}, 50)
 setTimeout(() => {
   cache3.fetch().then(data => {
     examplejs_print(data)
@@ -110,6 +116,23 @@ setTimeout(() => {
     done();
   })
 }, 1200)
+  });
+          
+  it("fetch():reject", function () {
+    examplejs_printLines = [];
+    let cache4 = new jfetchs.Cache({
+  fetch: () => {
+    return Promise.reject('cache4 error')
+  },
+})
+cache4.fetch().catch(err => {
+  examplejs_print(err)
+  assert.equal(examplejs_printLines.join("\n"), "cache4 error"); examplejs_printLines = [];
+})
+cache4.fetch().catch(err => {
+  examplejs_print(err)
+  assert.equal(examplejs_printLines.join("\n"), "cache4 error"); examplejs_printLines = [];
+})
   });
           
 });

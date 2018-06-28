@@ -15,13 +15,24 @@ export interface ICacheOptions<T> {
   }
 }
 export class Cache<T> {
-  options: ICacheOptions<T>
-  fetchedAt: number = 0
-  fetchData: T
+  private options: ICacheOptions<T>
+  private fetchedAt: number = 0
+  private fetchData: T
+  /**
+   * 获取数据中
+   */
+  private fetching: boolean
+  /**
+   * 读取队列
+   */
+  private queue: {
+    resolve: Function
+    reject: Function
+  }[] = []
   constructor(options: ICacheOptions<T>) {
     this.options = {
       debug: false,
-      expire: 1,
+      expire: 60 * 60, // 1 hours
       ...options,
     }
   }
@@ -98,18 +109,24 @@ setTimeout(() => {
     }
   })(),
 })
-cache3
-  .fetch()
-  .then(data => {
+cache3.fetch().then(data => {
+  console.log(data)
+  // > cache3 0
+})
+cache3.fetch().then(data => {
+  console.log(data)
+  // > cache3 0
+})
+cache3.fetch().then(data => {
+  console.log(data)
+  // > cache3 0
+})
+setTimeout(() => {
+  cache3.fetch().then(data => {
     console.log(data)
     // > cache3 0
   })
-  .then(() => {
-    return cache3.fetch().then(data => {
-      console.log(data)
-      // > cache3 0
-    })
-  })
+}, 50)
 setTimeout(() => {
   cache3.fetch().then(data => {
     console.log(data)
@@ -124,13 +141,29 @@ setTimeout(() => {
   })
 }, 1200)
     ```
+   * @example fetch():reject
+    ```js
+    let cache4 = new jfetchs.Cache({
+  fetch: () => {
+    return Promise.reject('cache4 error')
+  },
+})
+cache4.fetch().catch(err => {
+  console.log(err)
+  // > cache4 error
+})
+cache4.fetch().catch(err => {
+  console.log(err)
+  // > cache4 error
+})
+    ```
    */
   fetch(): Promise<T> {
     const now = Date.now()
     if (now - this.fetchedAt <= this.options.expire * 1000) {
       if (this.options.debug) {
         console.log(
-          `jfetchs/src/index.ts:50${
+          `jfetchs/src/index.ts:66${
             typeof this.options.debug === 'string'
               ? ' ' + JSON.stringify(this.options.debug)
               : ''
@@ -141,17 +174,42 @@ setTimeout(() => {
     }
     if (this.options.debug) {
       console.log(
-        `jfetchs/src/index.ts:62${
+        `jfetchs/src/index.ts:78${
           typeof this.options.debug === 'string'
             ? ' ' + JSON.stringify(this.options.debug)
             : ''
         } missing cache`
       )
     }
-    return this.options.fetch().then(data => {
-      this.fetchData = data
-      this.fetchedAt = now
-      return data
+    if (this.fetching) {
+      return new Promise((resolve, reject) => {
+        this.queue.push({
+          resolve: resolve,
+          reject: reject,
+        })
+      })
+    }
+    this.fetching = true
+    return new Promise((resolve, reject) => {
+      this.options
+        .fetch()
+        .then(data => {
+          this.fetchData = data
+          this.fetchedAt = now
+          this.fetching = false
+          let item
+          while ((item = this.queue.shift())) {
+            item.resolve(data)
+          }
+          resolve(data)
+        })
+        .catch(err => {
+          let item
+          while ((item = this.queue.shift())) {
+            item.reject(err)
+          }
+          reject(err)
+        })
     })
   }
 }

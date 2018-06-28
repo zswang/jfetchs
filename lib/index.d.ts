@@ -15,9 +15,17 @@ export interface ICacheOptions<T> {
     };
 }
 export declare class Cache<T> {
-    options: ICacheOptions<T>;
-    fetchedAt: number;
-    fetchData: T;
+    private options;
+    private fetchedAt;
+    private fetchData;
+    /**
+     * 获取数据中
+     */
+    private fetching;
+    /**
+     * 读取队列
+     */
+    private queue;
     constructor(options: ICacheOptions<T>);
     /**
      * 获取数据
@@ -92,18 +100,24 @@ export declare class Cache<T> {
       }
     })(),
   })
-  cache3
-    .fetch()
-    .then(data => {
+  cache3.fetch().then(data => {
+    console.log(data)
+    // > cache3 0
+  })
+  cache3.fetch().then(data => {
+    console.log(data)
+    // > cache3 0
+  })
+  cache3.fetch().then(data => {
+    console.log(data)
+    // > cache3 0
+  })
+  setTimeout(() => {
+    cache3.fetch().then(data => {
       console.log(data)
       // > cache3 0
     })
-    .then(() => {
-      return cache3.fetch().then(data => {
-        console.log(data)
-        // > cache3 0
-      })
-    })
+  }, 50)
   setTimeout(() => {
     cache3.fetch().then(data => {
       console.log(data)
@@ -117,6 +131,22 @@ export declare class Cache<T> {
       // * done
     })
   }, 1200)
+      ```
+     * @example fetch():reject
+      ```js
+      let cache4 = new jfetchs.Cache({
+    fetch: () => {
+      return Promise.reject('cache4 error')
+    },
+  })
+  cache4.fetch().catch(err => {
+    console.log(err)
+    // > cache4 error
+  })
+  cache4.fetch().catch(err => {
+    console.log(err)
+    // > cache4 error
+  })
       ```
      */
     fetch(): Promise<T>;
