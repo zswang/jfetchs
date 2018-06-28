@@ -16,9 +16,10 @@ export interface ICacheOptions<T> {
 }
 
 export class Cache<T> {
-  options: ICacheOptions<T>
-  fetchedAt: number = 0
-  fetchData: T
+  private options: ICacheOptions<T>
+  private fetchedAt: number = 0
+  private fetchData: T
+
   constructor(options: ICacheOptions<T>) {
     this.options = {
       debug: false,
@@ -66,6 +67,7 @@ export class Cache<T> {
         } missing cache`
       )
     }
+
     return this.options.fetch().then(data => {
       this.fetchData = data
       this.fetchedAt = now
@@ -79,7 +81,7 @@ const jfetchs = {
   Cache,
 }
 
-/*<debug desc="debugstring">*/
+/*<debug desc="debugstring">
 let cache1 = new jfetchs.Cache({
   debug: 'count1',
   expire: 1,
@@ -110,9 +112,9 @@ setTimeout(() => {
     // * done
   })
 }, 1200)
-/*</debug>*/
+//*</debug>*/
 
-/*<debug desc="debugtrue">*/
+/*<debug desc="debugtrue">
 let cache2 = new jfetchs.Cache({
   debug: true,
   expire: 1,
@@ -143,7 +145,7 @@ setTimeout(() => {
     // * done
   })
 }, 1200)
-/*</debug>*/
+//*</debug>*/
 
 /*<debug desc="nodebug">*/
 let cache3 = new jfetchs.Cache({
@@ -156,18 +158,20 @@ let cache3 = new jfetchs.Cache({
   })(),
 })
 
-cache3
-  .fetch()
-  .then(data => {
-    console.log(data)
-    // > cache3 0
-  })
-  .then(() => {
-    return cache3.fetch().then(data => {
-      console.log(data)
-      // > cache3 0
-    })
-  })
+cache3.fetch().then(data => {
+  console.log(data)
+  // > cache3 0
+})
+
+cache3.fetch().then(data => {
+  console.log(data)
+  // > cache3 0
+})
+
+cache3.fetch().then(data => {
+  console.log(data)
+  // > cache3 0
+})
 
 setTimeout(() => {
   cache3.fetch().then(data => {
