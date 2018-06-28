@@ -135,6 +135,7 @@ export declare class Cache<T> {
      * @example fetch():reject
       ```js
       let cache4 = new jfetchs.Cache({
+    debug: true,
     fetch: () => {
       return Promise.reject('cache4 error')
     },
@@ -146,6 +147,20 @@ export declare class Cache<T> {
   cache4.fetch().catch(err => {
     console.log(err)
     // > cache4 error
+  })
+  let cache5 = new jfetchs.Cache({
+    debug: 'cache5',
+    fetch: () => {
+      return Promise.reject('cache5 error')
+    },
+  })
+  cache5.fetch().catch(err => {
+    console.log(err)
+    // > cache5 error
+  })
+  cache5.fetch().catch(err => {
+    console.log(err)
+    // > cache5 error
   })
       ```
      */

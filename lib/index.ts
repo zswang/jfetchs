@@ -144,6 +144,7 @@ setTimeout(() => {
    * @example fetch():reject
     ```js
     let cache4 = new jfetchs.Cache({
+  debug: true,
   fetch: () => {
     return Promise.reject('cache4 error')
   },
@@ -156,38 +157,47 @@ cache4.fetch().catch(err => {
   console.log(err)
   // > cache4 error
 })
+let cache5 = new jfetchs.Cache({
+  debug: 'cache5',
+  fetch: () => {
+    return Promise.reject('cache5 error')
+  },
+})
+cache5.fetch().catch(err => {
+  console.log(err)
+  // > cache5 error
+})
+cache5.fetch().catch(err => {
+  console.log(err)
+  // > cache5 error
+})
     ```
    */
   fetch(): Promise<T> {
     const now = Date.now()
+    const prefix =
+      typeof this.options.debug === 'string'
+        ? ' ' + JSON.stringify(this.options.debug)
+        : ''
     if (now - this.fetchedAt <= this.options.expire * 1000) {
       if (this.options.debug) {
-        console.log(
-          `jfetchs/src/index.ts:66${
-            typeof this.options.debug === 'string'
-              ? ' ' + JSON.stringify(this.options.debug)
-              : ''
-          } hitting cache`
-        )
+        console.log(`jfetchs/src/index.ts:69${prefix} hitting cache`)
       }
       return Promise.resolve(this.fetchData)
     }
-    if (this.options.debug) {
-      console.log(
-        `jfetchs/src/index.ts:78${
-          typeof this.options.debug === 'string'
-            ? ' ' + JSON.stringify(this.options.debug)
-            : ''
-        } missing cache`
-      )
-    }
     if (this.fetching) {
+      if (this.options.debug) {
+        console.log(`jfetchs/src/index.ts:76${prefix} fetching in queue`)
+      }
       return new Promise((resolve, reject) => {
         this.queue.push({
           resolve: resolve,
           reject: reject,
         })
       })
+    }
+    if (this.options.debug) {
+      console.log(`jfetchs/src/index.ts:87${prefix} missing cache`)
     }
     this.fetching = true
     return new Promise((resolve, reject) => {

@@ -121,6 +121,7 @@ setTimeout(() => {
   it("fetch():reject", function () {
     examplejs_printLines = [];
     let cache4 = new jfetchs.Cache({
+  debug: true,
   fetch: () => {
     return Promise.reject('cache4 error')
   },
@@ -132,6 +133,20 @@ cache4.fetch().catch(err => {
 cache4.fetch().catch(err => {
   examplejs_print(err)
   assert.equal(examplejs_printLines.join("\n"), "cache4 error"); examplejs_printLines = [];
+})
+let cache5 = new jfetchs.Cache({
+  debug: 'cache5',
+  fetch: () => {
+    return Promise.reject('cache5 error')
+  },
+})
+cache5.fetch().catch(err => {
+  examplejs_print(err)
+  assert.equal(examplejs_printLines.join("\n"), "cache5 error"); examplejs_printLines = [];
+})
+cache5.fetch().catch(err => {
+  examplejs_print(err)
+  assert.equal(examplejs_printLines.join("\n"), "cache5 error"); examplejs_printLines = [];
 })
   });
           
