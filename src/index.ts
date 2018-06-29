@@ -68,7 +68,9 @@ export class Cache<T> {
     const now = Date.now()
     const prefix =
       typeof this.options.debug === 'string'
-        ? ' ' + JSON.stringify(this.options.debug)
+        ? ` ${JSON.stringify(this.options.debug)}${
+            key === '' ? '' : `(${key})`
+          }`
         : ''
     if (now - (this.fetchedAt[key] || 0) <= this.options.expire * 1000) {
       if (this.options.debug) {
@@ -282,6 +284,11 @@ cache5.fetch().catch(err => {
 })
 
 cache5.fetch().catch(err => {
+  console.log(err)
+  // > cache5 error
+})
+
+cache5.fetch(8).catch(err => {
   console.log(err)
   // > cache5 error
 })

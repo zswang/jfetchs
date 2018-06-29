@@ -148,6 +148,10 @@ cache5.fetch().catch(err => {
   examplejs_print(err)
   assert.equal(examplejs_printLines.join("\n"), "cache5 error"); examplejs_printLines = [];
 })
+cache5.fetch(8).catch(err => {
+  examplejs_print(err)
+  assert.equal(examplejs_printLines.join("\n"), "cache5 error"); examplejs_printLines = [];
+})
   });
           
   it("fetch():key", function () {

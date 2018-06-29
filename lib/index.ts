@@ -173,6 +173,10 @@ cache5.fetch().catch(err => {
   console.log(err)
   // > cache5 error
 })
+cache5.fetch(8).catch(err => {
+  console.log(err)
+  // > cache5 error
+})
     ```
    * @example fetch():key
     ```js
@@ -204,17 +208,19 @@ cache6.fetch(6).then(data => {
     const now = Date.now()
     const prefix =
       typeof this.options.debug === 'string'
-        ? ' ' + JSON.stringify(this.options.debug)
+        ? ` ${JSON.stringify(this.options.debug)}${
+            key === '' ? '' : `(${key})`
+          }`
         : ''
     if (now - (this.fetchedAt[key] || 0) <= this.options.expire * 1000) {
       if (this.options.debug) {
-        console.log(`jfetchs/src/index.ts:75${prefix} hitting cache`)
+        console.log(`jfetchs/src/index.ts:77${prefix} hitting cache`)
       }
       return Promise.resolve(this.fetchData[key])
     }
     if (this.fetching[key]) {
       if (this.options.debug) {
-        console.log(`jfetchs/src/index.ts:82${prefix} fetching in queue`)
+        console.log(`jfetchs/src/index.ts:84${prefix} fetching in queue`)
       }
       return new Promise((resolve, reject) => {
         this.queue[key] = this.queue[key] || []
@@ -225,7 +231,7 @@ cache6.fetch(6).then(data => {
       })
     }
     if (this.options.debug) {
-      console.log(`jfetchs/src/index.ts:94${prefix} missing cache`)
+      console.log(`jfetchs/src/index.ts:96${prefix} missing cache`)
     }
     this.flush()
     this.fetching[key] = true

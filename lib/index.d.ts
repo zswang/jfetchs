@@ -162,6 +162,10 @@ export declare class Cache<T> {
     console.log(err)
     // > cache5 error
   })
+  cache5.fetch(8).catch(err => {
+    console.log(err)
+    // > cache5 error
+  })
       ```
      * @example fetch():key
       ```js
