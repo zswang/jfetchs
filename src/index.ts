@@ -87,6 +87,7 @@ export class Cache<T> {
       console.log(`^linenum${prefix} missing cache`)
     }
 
+    this.flush()
     this.fetching = true
     return new Promise((resolve, reject) => {
       this.options
@@ -109,6 +110,13 @@ export class Cache<T> {
           reject(err)
         })
     })
+  }
+  /**
+   * 移除缓存
+   */
+  flush() {
+    this.fetchData = null
+    this.fetchedAt = 0
   }
 }
 

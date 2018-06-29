@@ -165,5 +165,9 @@ export declare class Cache<T> {
       ```
      */
     fetch(): Promise<T>;
+    /**
+     * 移除缓存
+     */
+    flush(): void;
 }
 //# sourceMappingURL=index.d.ts.map

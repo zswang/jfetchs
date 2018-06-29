@@ -199,6 +199,7 @@ cache5.fetch().catch(err => {
     if (this.options.debug) {
       console.log(`jfetchs/src/index.ts:87${prefix} missing cache`)
     }
+    this.flush()
     this.fetching = true
     return new Promise((resolve, reject) => {
       this.options
@@ -221,5 +222,12 @@ cache5.fetch().catch(err => {
           reject(err)
         })
     })
+  }
+  /**
+   * 移除缓存
+   */
+  flush() {
+    this.fetchData = null
+    this.fetchedAt = 0
   }
 }
