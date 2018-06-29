@@ -11,7 +11,7 @@ export interface ICacheOptions<T> {
      * 获取数据的方法
      */
     fetch: {
-        (): Promise<T>;
+        (key?: string | number): Promise<T>;
     };
 }
 export declare class Cache<T> {
@@ -163,11 +163,36 @@ export declare class Cache<T> {
     // > cache5 error
   })
       ```
+     * @example fetch():key
+      ```js
+      let cache6 = new jfetchs.Cache({
+    debug: true,
+    fetch: key => {
+      if (key === 6) {
+        return Promise.resolve(666)
+      }
+      return Promise.reject(`cache6 ${key} error`)
+    },
+  })
+  cache6.fetch('ok').catch(err => {
+    console.log(err)
+    // > cache6 ok error
+  })
+  cache6.fetch(3).catch(err => {
+    console.log(err)
+    // > cache6 3 error
+  })
+  cache6.flush(3)
+  cache6.fetch(6).then(data => {
+    console.log(data)
+    // > 666
+  })
+      ```
      */
-    fetch(): Promise<T>;
+    fetch(key?: string | number): Promise<T>;
     /**
      * 移除缓存
      */
-    flush(): void;
+    flush(key?: string | number): void;
 }
 //# sourceMappingURL=index.d.ts.map

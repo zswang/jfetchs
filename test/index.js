@@ -150,5 +150,31 @@ cache5.fetch().catch(err => {
 })
   });
           
+  it("fetch():key", function () {
+    examplejs_printLines = [];
+    let cache6 = new jfetchs.Cache({
+  debug: true,
+  fetch: key => {
+    if (key === 6) {
+      return Promise.resolve(666)
+    }
+    return Promise.reject(`cache6 ${key} error`)
+  },
+})
+cache6.fetch('ok').catch(err => {
+  examplejs_print(err)
+  assert.equal(examplejs_printLines.join("\n"), "cache6 ok error"); examplejs_printLines = [];
+})
+cache6.fetch(3).catch(err => {
+  examplejs_print(err)
+  assert.equal(examplejs_printLines.join("\n"), "cache6 3 error"); examplejs_printLines = [];
+})
+cache6.flush(3)
+cache6.fetch(6).then(data => {
+  examplejs_print(data)
+  assert.equal(examplejs_printLines.join("\n"), "666"); examplejs_printLines = [];
+})
+  });
+          
 });
          

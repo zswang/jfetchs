@@ -11,24 +11,26 @@ export interface ICacheOptions<T> {
    * 获取数据的方法
    */
   fetch: {
-    (): Promise<T>
+    (key?: string | number): Promise<T>
   }
 }
 export class Cache<T> {
   private options: ICacheOptions<T>
-  private fetchedAt: number = 0
-  private fetchData: T
+  private fetchedAt: { [key: string]: number } = {}
+  private fetchData: { [key: string]: T } = {}
   /**
    * 获取数据中
    */
-  private fetching: boolean
+  private fetching: { [key: string]: boolean } = {}
   /**
    * 读取队列2
    */
   private queue: {
-    resolve: Function
-    reject: Function
-  }[] = []
+    [key: string]: {
+      resolve: Function
+      reject: Function
+    }[]
+  } = {}
   constructor(options: ICacheOptions<T>) {
     this.options = {
       debug: false,
@@ -172,52 +174,82 @@ cache5.fetch().catch(err => {
   // > cache5 error
 })
     ```
+   * @example fetch():key
+    ```js
+    let cache6 = new jfetchs.Cache({
+  debug: true,
+  fetch: key => {
+    if (key === 6) {
+      return Promise.resolve(666)
+    }
+    return Promise.reject(`cache6 ${key} error`)
+  },
+})
+cache6.fetch('ok').catch(err => {
+  console.log(err)
+  // > cache6 ok error
+})
+cache6.fetch(3).catch(err => {
+  console.log(err)
+  // > cache6 3 error
+})
+cache6.flush(3)
+cache6.fetch(6).then(data => {
+  console.log(data)
+  // > 666
+})
+    ```
    */
-  fetch(): Promise<T> {
+  fetch(key: string | number = ''): Promise<T> {
     const now = Date.now()
     const prefix =
       typeof this.options.debug === 'string'
         ? ' ' + JSON.stringify(this.options.debug)
         : ''
-    if (now - this.fetchedAt <= this.options.expire * 1000) {
+    if (now - (this.fetchedAt[key] || 0) <= this.options.expire * 1000) {
       if (this.options.debug) {
-        console.log(`jfetchs/src/index.ts:69${prefix} hitting cache`)
+        console.log(`jfetchs/src/index.ts:75${prefix} hitting cache`)
       }
-      return Promise.resolve(this.fetchData)
+      return Promise.resolve(this.fetchData[key])
     }
-    if (this.fetching) {
+    if (this.fetching[key]) {
       if (this.options.debug) {
-        console.log(`jfetchs/src/index.ts:76${prefix} fetching in queue`)
+        console.log(`jfetchs/src/index.ts:82${prefix} fetching in queue`)
       }
       return new Promise((resolve, reject) => {
-        this.queue.push({
+        this.queue[key] = this.queue[key] || []
+        this.queue[key].push({
           resolve: resolve,
           reject: reject,
         })
       })
     }
     if (this.options.debug) {
-      console.log(`jfetchs/src/index.ts:87${prefix} missing cache`)
+      console.log(`jfetchs/src/index.ts:94${prefix} missing cache`)
     }
     this.flush()
-    this.fetching = true
+    this.fetching[key] = true
     return new Promise((resolve, reject) => {
       this.options
-        .fetch()
+        .fetch(key)
         .then(data => {
-          this.fetchData = data
-          this.fetchedAt = now
-          this.fetching = false
-          let item
-          while ((item = this.queue.shift())) {
-            item.resolve(data)
+          this.fetchData[key] = data
+          this.fetchedAt[key] = now
+          this.fetching[key] = false
+          if (this.queue[key]) {
+            let item
+            while ((item = this.queue[key].shift())) {
+              item.resolve(data)
+            }
           }
           resolve(data)
         })
         .catch(err => {
-          let item
-          while ((item = this.queue.shift())) {
-            item.reject(err)
+          if (this.queue[key]) {
+            let item
+            while ((item = this.queue[key].shift())) {
+              item.reject(err)
+            }
           }
           reject(err)
         })
@@ -226,8 +258,8 @@ cache5.fetch().catch(err => {
   /**
    * 移除缓存
    */
-  flush() {
-    this.fetchData = null
-    this.fetchedAt = 0
+  flush(key: string | number = '') {
+    this.fetchData[key] = null
+    this.fetchedAt[key] = 0
   }
 }
