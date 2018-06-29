@@ -24,7 +24,7 @@ export class Cache<T> {
    */
   private fetching: boolean
   /**
-   * 读取队列
+   * 读取队列2
    */
   private queue: {
     resolve: Function

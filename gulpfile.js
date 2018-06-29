@@ -32,7 +32,9 @@ function build() {
     )
 
   return merge2([
-    tsResult.dts.pipe(gulp.dest('lib')),
+    tsResult.dts
+      .pipe(replace(/^\s*private\s.*;\s*$/gm, '// $&'))
+      .pipe(gulp.dest('lib')),
     tsResult.js
       .pipe(
         replace(

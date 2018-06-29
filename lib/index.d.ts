@@ -15,17 +15,17 @@ export interface ICacheOptions<T> {
     };
 }
 export declare class Cache<T> {
-    private options;
-    private fetchedAt;
-    private fetchData;
+//     private options;
+//     private fetchedAt;
+//     private fetchData;
     /**
      * 获取数据中
      */
-    private fetching;
+//     private fetching;
     /**
-     * 读取队列
+     * 读取队列2
      */
-    private queue;
+//     private queue;
     constructor(options: ICacheOptions<T>);
     /**
      * 获取数据
