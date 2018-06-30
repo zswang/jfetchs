@@ -36,25 +36,25 @@ export declare class Cache<T> {
     expire: 1,
     fetch: (() => {
       let count = 0
-      return () => {
-        return Promise.resolve(`cache1 ${count++}`)
+      return (key) => {
+        return Promise.resolve(`cache1 ${key}${count++}`)
       }
     })(),
   })
-  cache1.fetch().then(data => {
+  cache1.fetch('c').then(data => {
     console.log(data)
-    // > cache1 0
+    // > cache1 c0
   })
   setTimeout(() => {
-    cache1.fetch().then(data => {
+    cache1.fetch('d').then(data => {
       console.log(data)
-      // > cache1 0
+      // > cache1 d1
     })
   }, 500)
   setTimeout(() => {
     cache1.fetch().then(data => {
       console.log(data)
-      // > cache1 1
+      // > cache1 2
       // * done
     })
   }, 1200)

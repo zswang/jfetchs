@@ -19,25 +19,25 @@ describe("src/index.ts", function () {
   expire: 1,
   fetch: (() => {
     let count = 0
-    return () => {
-      return Promise.resolve(`cache1 ${count++}`)
+    return (key) => {
+      return Promise.resolve(`cache1 ${key}${count++}`)
     }
   })(),
 })
-cache1.fetch().then(data => {
+cache1.fetch('c').then(data => {
   examplejs_print(data)
-  assert.equal(examplejs_printLines.join("\n"), "cache1 0"); examplejs_printLines = [];
+  assert.equal(examplejs_printLines.join("\n"), "cache1 c0"); examplejs_printLines = [];
 })
 setTimeout(() => {
-  cache1.fetch().then(data => {
+  cache1.fetch('d').then(data => {
     examplejs_print(data)
-    assert.equal(examplejs_printLines.join("\n"), "cache1 0"); examplejs_printLines = [];
+    assert.equal(examplejs_printLines.join("\n"), "cache1 d1"); examplejs_printLines = [];
   })
 }, 500)
 setTimeout(() => {
   cache1.fetch().then(data => {
     examplejs_print(data)
-    assert.equal(examplejs_printLines.join("\n"), "cache1 1"); examplejs_printLines = [];
+    assert.equal(examplejs_printLines.join("\n"), "cache1 2"); examplejs_printLines = [];
     done();
   })
 }, 1200)
