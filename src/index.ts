@@ -15,16 +15,44 @@ export interface ICacheOptions<T> {
   }
 }
 
+/*<jdists encoding="ejs" data="../package.json">*/
+/**
+ * @file <%- name %>
+ *
+ * <%- description %>
+ * @author
+     <% (author instanceof Array ? author : [author]).forEach(function (item) { %>
+ *   <%- item.name %> (<%- item.url %>)
+     <% }); %>
+ * @version <%- version %>
+     <% var now = new Date() %>
+ * @date <%- [
+      now.getFullYear(),
+      now.getMonth() + 101,
+      now.getDate() + 100
+    ].join('-').replace(/-1/g, '-') %>
+ */
+/*</jdists>*/
+
 export class Cache<T> {
+  /**
+   * 配置项
+   */
   private options: ICacheOptions<T>
+  /**
+   * 缓存开始时间
+   */
   private fetchedAt: { [key: string]: number } = {}
+  /**
+   * 缓存数据
+   */
   private fetchData: { [key: string]: T } = {}
   /**
    * 获取数据中
    */
   private fetching: { [key: string]: boolean } = {}
   /**
-   * 读取队列2
+   * 读取队列
    */
   private queue: {
     [key: string]: {
@@ -42,7 +70,8 @@ export class Cache<T> {
   }
 
   /**
-   * 获取数据
+   * 获取数据 Fetch cached data
+   * @param key 缓存标志，默认: ''
    * @example fetch():debugstring
     ```js
     (*<jdists import="?debug[desc='debugstring']" />*)
@@ -125,7 +154,8 @@ export class Cache<T> {
     })
   }
   /**
-   * 移除缓存
+   * 移除缓存 Remove cached data
+   * @param key 缓存标志，默认: ''
    */
   flush(key: string | number = '') {
     this.fetchData[key] = null
@@ -144,7 +174,7 @@ let cache1 = new jfetchs.Cache({
   expire: 1,
   fetch: (() => {
     let count = 0
-    return (key) => {
+    return key => {
       return Promise.resolve(`cache1 ${key}${count++}`)
     }
   })(),

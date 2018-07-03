@@ -19,7 +19,7 @@ describe("src/index.ts", function () {
   expire: 1,
   fetch: (() => {
     let count = 0
-    return (key) => {
+    return key => {
       return Promise.resolve(`cache1 ${key}${count++}`)
     }
   })(),

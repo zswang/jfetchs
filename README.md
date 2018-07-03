@@ -22,6 +22,28 @@ cache.fetch().then(data => {
 })
 ```
 
+## API
+
+### Cache.fetch
+
+```js
+/**
+ * 获取数据 Fetch cached data
+ * @param key 缓存标志，默认: ''
+ */
+Cache.fetch(key?: string) {}
+```
+
+### Cache.flush
+
+```js
+/**
+ * 移除缓存 Remove cached data
+ * @param key 缓存标志，默认: ''
+ */
+Cache.flush(key?: string) {}
+```
+
 ## License
 
 MIT © [zswang](http://weibo.com/zswang)

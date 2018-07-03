@@ -14,21 +14,40 @@ export interface ICacheOptions<T> {
         (key?: string | number): Promise<T>;
     };
 }
+/**
+ * @file jfetchs
+ *
+ * Cache of fetch data
+ * @author
+ *    ()
+ * @version 0.1.8
+ * @date 2018-07-03
+ */
 export declare class Cache<T> {
+    /**
+     * 配置项
+     */
 //     private options;
+    /**
+     * 缓存开始时间
+     */
 //     private fetchedAt;
+    /**
+     * 缓存数据
+     */
 //     private fetchData;
     /**
      * 获取数据中
      */
 //     private fetching;
     /**
-     * 读取队列2
+     * 读取队列
      */
 //     private queue;
     constructor(options: ICacheOptions<T>);
     /**
-     * 获取数据
+     * 获取数据 Fetch cached data
+     * @param key 缓存标志，默认: ''
      * @example fetch():debugstring
       ```js
       let cache1 = new jfetchs.Cache({
@@ -36,7 +55,7 @@ export declare class Cache<T> {
     expire: 1,
     fetch: (() => {
       let count = 0
-      return (key) => {
+      return key => {
         return Promise.resolve(`cache1 ${key}${count++}`)
       }
     })(),
@@ -195,7 +214,8 @@ export declare class Cache<T> {
      */
     fetch(key?: string | number): Promise<T>;
     /**
-     * 移除缓存
+     * 移除缓存 Remove cached data
+     * @param key 缓存标志，默认: ''
      */
     flush(key?: string | number): void;
 }
