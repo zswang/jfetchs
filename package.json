@@ -1,6 +1,6 @@
 {
   "name": "jfetchs",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Cache of fetch data",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
@@ -17,7 +17,10 @@
     "type": "git",
     "url": "git+https://github.com/zswang/jfetchs.git"
   },
-  "author": "",
+  "author": {
+    "name": "zswang",
+    "url": "http://weibo.com/zswang"
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/zswang/jfetchs/issues"
