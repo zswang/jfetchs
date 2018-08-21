@@ -20,8 +20,8 @@ export interface ICacheOptions<T> {
  * Cache of fetch data
  * @author
  *   zswang (http://weibo.com/zswang)
- * @version 0.1.9
- * @date 2018-07-03
+ * @version 0.1.15
+ * @date 2018-08-21
  */
 export class Cache<T> {
   /**
@@ -222,6 +222,37 @@ cache6.fetch(6).then(data => {
   // > 666
 })
     ```
+   * @example fetch():resume
+    ```js
+    let error
+const cache7 = new jfetchs.Cache({
+  fetch: () => {
+    if (error) {
+      return Promise.reject(error)
+    }
+    return Promise.resolve('ok')
+  },
+})
+error = '#1'
+cache7
+  .fetch()
+  .then()
+  .catch(err => {
+    console.log(err)
+    // > #1
+  })
+setTimeout(() => {
+  error = null
+  cache7
+    .fetch()
+    .then(reply => {
+      console.log(reply)
+      // > ok
+      // * done
+    })
+    .catch()
+}, 100)
+    ```
    */
   fetch(key: string | number = ''): Promise<T> {
     const now = Date.now()
@@ -233,13 +264,13 @@ cache6.fetch(6).then(data => {
         : ''
     if (now - (this.fetchedAt[key] || 0) <= this.options.expire * 1000) {
       if (this.options.debug) {
-        console.log(`jfetchs/src/index.ts:106${prefix} hitting cache`)
+        console.log(`jfetchs/src/index.ts:110${prefix} hitting cache`)
       }
       return Promise.resolve(this.fetchData[key])
     }
     if (this.fetching[key]) {
       if (this.options.debug) {
-        console.log(`jfetchs/src/index.ts:113${prefix} fetching in queue`)
+        console.log(`jfetchs/src/index.ts:117${prefix} fetching in queue`)
       }
       return new Promise((resolve, reject) => {
         this.queue[key] = this.queue[key] || []
@@ -250,10 +281,11 @@ cache6.fetch(6).then(data => {
       })
     }
     if (this.options.debug) {
-      console.log(`jfetchs/src/index.ts:125${prefix} missing cache`)
+      console.log(`jfetchs/src/index.ts:129${prefix} missing cache`)
     }
     this.flush()
     this.fetching[key] = true
+    this.fetchData[key] = null
     return new Promise((resolve, reject) => {
       this.options
         .fetch(key)
@@ -270,6 +302,8 @@ cache6.fetch(6).then(data => {
           resolve(data)
         })
         .catch(err => {
+          this.fetchedAt[key] = 0
+          this.fetching[key] = false
           if (this.queue[key]) {
             let item
             while ((item = this.queue[key].shift())) {

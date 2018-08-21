@@ -20,8 +20,8 @@ export interface ICacheOptions<T> {
  * Cache of fetch data
  * @author
  *   zswang (http://weibo.com/zswang)
- * @version 0.1.9
- * @date 2018-07-03
+ * @version 0.1.15
+ * @date 2018-08-21
  */
 export declare class Cache<T> {
     /**
@@ -210,6 +210,37 @@ export declare class Cache<T> {
     console.log(data)
     // > 666
   })
+      ```
+     * @example fetch():resume
+      ```js
+      let error
+  const cache7 = new jfetchs.Cache({
+    fetch: () => {
+      if (error) {
+        return Promise.reject(error)
+      }
+      return Promise.resolve('ok')
+    },
+  })
+  error = '#1'
+  cache7
+    .fetch()
+    .then()
+    .catch(err => {
+      console.log(err)
+      // > #1
+    })
+  setTimeout(() => {
+    error = null
+    cache7
+      .fetch()
+      .then(reply => {
+        console.log(reply)
+        // > ok
+        // * done
+      })
+      .catch()
+  }, 100)
       ```
      */
     fetch(key?: string | number): Promise<T>;

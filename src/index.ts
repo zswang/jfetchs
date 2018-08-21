@@ -92,6 +92,10 @@ export class Cache<T> {
     ```js
     (*<jdists import="?debug[desc='key']" />*)
     ```
+   * @example fetch():resume
+    ```js
+    (*<jdists import="?debug[desc='resume']" />*)
+    ```
    */
   fetch(key: string | number = ''): Promise<T> {
     const now = Date.now()
@@ -127,6 +131,7 @@ export class Cache<T> {
 
     this.flush()
     this.fetching[key] = true
+    this.fetchData[key] = null
     return new Promise((resolve, reject) => {
       this.options
         .fetch(key)
@@ -143,6 +148,8 @@ export class Cache<T> {
           resolve(data)
         })
         .catch(err => {
+          this.fetchedAt[key] = 0
+          this.fetching[key] = false
           if (this.queue[key]) {
             let item
             while ((item = this.queue[key].shift())) {
@@ -350,5 +357,38 @@ cache6.fetch(6).then(data => {
   console.log(data)
   // > 666
 })
+/*</debug>*/
+
+/*<debug desc="resume">*/
+let error
+const cache7 = new jfetchs.Cache({
+  fetch: () => {
+    if (error) {
+      return Promise.reject(error)
+    }
+    return Promise.resolve('ok')
+  },
+})
+
+error = '#1'
+cache7
+  .fetch()
+  .then()
+  .catch(err => {
+    console.log(err)
+    // > #1
+  })
+
+setTimeout(() => {
+  error = null
+  cache7
+    .fetch()
+    .then(reply => {
+      console.log(reply)
+      // > ok
+      // * done
+    })
+    .catch()
+}, 100)
 /*</debug>*/
 /*</remove>*/
