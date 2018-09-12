@@ -174,6 +174,7 @@ cache6.fetch(3).catch(err => {
   assert.equal(examplejs_printLines.join("\n"), "cache6 3 error"); examplejs_printLines = [];
 })
 cache6.flush(3)
+cache6.flush()
 cache6.fetch(6).then(data => {
   examplejs_print(data)
   assert.equal(examplejs_printLines.join("\n"), "666"); examplejs_printLines = [];
@@ -184,6 +185,7 @@ cache6.fetch(6).then(data => {
     examplejs_printLines = [];
     let error
 const cache7 = new jfetchs.Cache({
+  store: new jfetchs.MemoryStore(),
   fetch: () => {
     if (error) {
       return Promise.reject(error)

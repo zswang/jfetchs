@@ -27,7 +27,6 @@ function build() {
       typescript({
         target: 'ES5',
         declaration: true,
-        module: 'umd',
       })
     )
 

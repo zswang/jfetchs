@@ -1,8 +1,15 @@
+import { ICacheStore } from 'jfetchs-util'
+import { MemoryStore } from 'jfetchs-memory'
+export { MemoryStore }
 export interface ICacheOptions<T> {
   /**
    * 是否打印调试信息
    */
   debug?: boolean | string
+  /**
+   * 存储器
+   */
+  store?: ICacheStore<T>
   /**
    * 过期时间，单位：秒
    */
@@ -20,22 +27,14 @@ export interface ICacheOptions<T> {
  * Cache of fetch data
  * @author
  *   zswang (http://weibo.com/zswang)
- * @version 0.1.15
- * @date 2018-08-21
+ * @version 0.1.26
+ * @date 2018-09-12
  */
 export class Cache<T> {
   /**
    * 配置项
    */
   private options: ICacheOptions<T>
-  /**
-   * 缓存开始时间
-   */
-  private fetchedAt: { [key: string]: number } = {}
-  /**
-   * 缓存数据
-   */
-  private fetchData: { [key: string]: T } = {}
   /**
    * 获取数据中
    */
@@ -54,6 +53,9 @@ export class Cache<T> {
       debug: false,
       expire: 60 * 60, // 1 hours
       ...options,
+    }
+    if (!this.options.store) {
+      this.options.store = new MemoryStore<T>()
     }
   }
   /**
@@ -217,6 +219,7 @@ cache6.fetch(3).catch(err => {
   // > cache6 3 error
 })
 cache6.flush(3)
+cache6.flush()
 cache6.fetch(6).then(data => {
   console.log(data)
   // > 666
@@ -226,6 +229,7 @@ cache6.fetch(6).then(data => {
     ```js
     let error
 const cache7 = new jfetchs.Cache({
+  store: new jfetchs.MemoryStore(),
   fetch: () => {
     if (error) {
       return Promise.reject(error)
@@ -255,22 +259,17 @@ setTimeout(() => {
     ```
    */
   fetch(key: string | number = ''): Promise<T> {
-    const now = Date.now()
+    // 日志前缀
     const prefix =
       typeof this.options.debug === 'string'
         ? ` ${JSON.stringify(this.options.debug)}${
             key === '' ? '' : `(${key})`
           }`
         : ''
-    if (now - (this.fetchedAt[key] || 0) <= this.options.expire * 1000) {
-      if (this.options.debug) {
-        console.log(`jfetchs/src/index.ts:110${prefix} hitting cache`)
-      }
-      return Promise.resolve(this.fetchData[key])
-    }
+    // 数据正在获取中
     if (this.fetching[key]) {
       if (this.options.debug) {
-        console.log(`jfetchs/src/index.ts:117${prefix} fetching in queue`)
+        console.log(`jfetchs/src/index.ts:115${prefix} fetching in queue`)
       }
       return new Promise((resolve, reject) => {
         this.queue[key] = this.queue[key] || []
@@ -280,46 +279,55 @@ setTimeout(() => {
         })
       })
     }
-    if (this.options.debug) {
-      console.log(`jfetchs/src/index.ts:129${prefix} missing cache`)
-    }
-    this.flush()
     this.fetching[key] = true
-    this.fetchData[key] = null
-    return new Promise((resolve, reject) => {
-      this.options
-        .fetch(key)
-        .then(data => {
-          this.fetchData[key] = data
-          this.fetchedAt[key] = now
-          this.fetching[key] = false
-          if (this.queue[key]) {
-            let item
-            while ((item = this.queue[key].shift())) {
-              item.resolve(data)
-            }
+    return this.options.store.load(key).then(data => {
+      return new Promise((resolve, reject) => {
+        if (data !== undefined) {
+          if (this.options.debug) {
+            console.log(`jfetchs/src/index.ts:131${prefix} hitting cache`)
           }
-          resolve(data)
-        })
-        .catch(err => {
-          this.fetchedAt[key] = 0
           this.fetching[key] = false
-          if (this.queue[key]) {
-            let item
-            while ((item = this.queue[key].shift())) {
-              item.reject(err)
+          return resolve(data)
+        }
+        if (this.options.debug) {
+          console.log(`jfetchs/src/index.ts:138${prefix} missing cache`)
+        }
+        this.flush(key)
+        this.options
+          .fetch(key)
+          .then(data => {
+            return this.options.store
+              .save(key, data, this.options.expire)
+              .then(() => data)
+          })
+          .then(data => {
+            this.fetching[key] = false
+            if (this.queue[key]) {
+              let item
+              while ((item = this.queue[key].shift())) {
+                item.resolve(data)
+              }
             }
-          }
-          reject(err)
-        })
+            resolve(data)
+          })
+          .catch(err => {
+            this.fetching[key] = false
+            if (this.queue[key]) {
+              let item
+              while ((item = this.queue[key].shift())) {
+                item.reject(err)
+              }
+            }
+            reject(err)
+          })
+      }) as Promise<T>
     })
   }
   /**
    * 移除缓存 Remove cached data
    * @param key 缓存标志，默认: ''
    */
-  flush(key: string | number = '') {
-    this.fetchData[key] = null
-    this.fetchedAt[key] = 0
+  flush(key: string | number = ''): Promise<boolean> {
+    return this.options.store.remove(key)
   }
 }

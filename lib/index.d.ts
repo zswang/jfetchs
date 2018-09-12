@@ -1,8 +1,15 @@
+import { ICacheStore } from 'jfetchs-util';
+import { MemoryStore } from 'jfetchs-memory';
+export { MemoryStore };
 export interface ICacheOptions<T> {
     /**
      * 是否打印调试信息
      */
     debug?: boolean | string;
+    /**
+     * 存储器
+     */
+    store?: ICacheStore<T>;
     /**
      * 过期时间，单位：秒
      */
@@ -20,22 +27,14 @@ export interface ICacheOptions<T> {
  * Cache of fetch data
  * @author
  *   zswang (http://weibo.com/zswang)
- * @version 0.1.15
- * @date 2018-08-21
+ * @version 0.1.26
+ * @date 2018-09-12
  */
 export declare class Cache<T> {
     /**
      * 配置项
      */
 //     private options;
-    /**
-     * 缓存开始时间
-     */
-//     private fetchedAt;
-    /**
-     * 缓存数据
-     */
-//     private fetchData;
     /**
      * 获取数据中
      */
@@ -206,6 +205,7 @@ export declare class Cache<T> {
     // > cache6 3 error
   })
   cache6.flush(3)
+  cache6.flush()
   cache6.fetch(6).then(data => {
     console.log(data)
     // > 666
@@ -215,6 +215,7 @@ export declare class Cache<T> {
       ```js
       let error
   const cache7 = new jfetchs.Cache({
+    store: new jfetchs.MemoryStore(),
     fetch: () => {
       if (error) {
         return Promise.reject(error)
@@ -248,6 +249,6 @@ export declare class Cache<T> {
      * 移除缓存 Remove cached data
      * @param key 缓存标志，默认: ''
      */
-    flush(key?: string | number): void;
+    flush(key?: string | number): Promise<boolean>;
 }
 //# sourceMappingURL=index.d.ts.map
