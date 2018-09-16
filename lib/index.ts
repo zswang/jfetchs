@@ -27,8 +27,8 @@ export interface ICacheOptions<T> {
  * Cache of fetch data
  * @author
  *   zswang (http://weibo.com/zswang)
- * @version 0.1.26
- * @date 2018-09-12
+ * @version 0.1.27
+ * @date 2018-09-16
  */
 export class Cache<T> {
   /**
