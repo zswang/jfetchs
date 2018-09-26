@@ -19,10 +19,16 @@ describe("src/index.ts", function () {
   expire: 1,
   fetch: (() => {
     let count = 0
-    return key => {
-      return Promise.resolve(`cache1 ${key}${count++}`)
+    return query => {
+      return Promise.resolve(`cache1 ${query}${count++}`)
     }
   })(),
+  hash: query => {
+    if (['string', 'number', 'boolean'].includes(typeof query)) {
+      return String(query)
+    }
+    return JSON.stringify(query)
+  },
 })
 cache1.fetch('c').then(data => {
   examplejs_print(data)
@@ -158,11 +164,11 @@ cache5.fetch(8).catch(err => {
     examplejs_printLines = [];
     let cache6 = new jfetchs.Cache({
   debug: true,
-  fetch: key => {
-    if (key === 6) {
+  fetch: query => {
+    if (query === 6) {
       return Promise.resolve(666)
     }
-    return Promise.reject(`cache6 ${key} error`)
+    return Promise.reject(`cache6 ${query} error`)
   },
 })
 cache6.fetch('ok').catch(err => {

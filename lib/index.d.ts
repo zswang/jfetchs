@@ -15,11 +15,15 @@ export interface ICacheOptions<T> {
      */
     expire?: number;
     /**
-     * 获取数据的方法
+     * 获取数据
+     * @param query 查询条件
      */
-    fetch: {
-        (key?: string | number): Promise<T>;
-    };
+    fetch(query?: any): Promise<T>;
+    /**
+     * 计算 hash 值
+     * @param query 查询条件
+     */
+    hash?(query?: any): string;
 }
 /**
  * @file jfetchs
@@ -27,8 +31,8 @@ export interface ICacheOptions<T> {
  * Cache of fetch data
  * @author
  *   zswang (http://weibo.com/zswang)
- * @version 0.1.27
- * @date 2018-09-16
+ * @version 1.0.0
+ * @date 2018-09-26
  */
 export declare class Cache<T> {
     /**
@@ -54,10 +58,16 @@ export declare class Cache<T> {
     expire: 1,
     fetch: (() => {
       let count = 0
-      return key => {
-        return Promise.resolve(`cache1 ${key}${count++}`)
+      return query => {
+        return Promise.resolve(`cache1 ${query}${count++}`)
       }
     })(),
+    hash: query => {
+      if (['string', 'number', 'boolean'].includes(typeof query)) {
+        return String(query)
+      }
+      return JSON.stringify(query)
+    },
   })
   cache1.fetch('c').then(data => {
     console.log(data)
@@ -189,11 +199,11 @@ export declare class Cache<T> {
       ```js
       let cache6 = new jfetchs.Cache({
     debug: true,
-    fetch: key => {
-      if (key === 6) {
+    fetch: query => {
+      if (query === 6) {
         return Promise.resolve(666)
       }
-      return Promise.reject(`cache6 ${key} error`)
+      return Promise.reject(`cache6 ${query} error`)
     },
   })
   cache6.fetch('ok').catch(err => {
@@ -244,7 +254,7 @@ export declare class Cache<T> {
   }, 100)
       ```
      */
-    fetch(key?: string | number): Promise<T>;
+    fetch(query?: any): Promise<T>;
     /**
      * 移除缓存 Remove cached data
      * @param key 缓存标志，默认: ''

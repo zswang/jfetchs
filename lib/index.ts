@@ -1,5 +1,6 @@
 import { ICacheStore } from 'jfetchs-util'
 import { MemoryStore } from 'jfetchs-memory'
+import { createHash } from 'crypto'
 export { MemoryStore }
 export interface ICacheOptions<T> {
   /**
@@ -15,11 +16,15 @@ export interface ICacheOptions<T> {
    */
   expire?: number
   /**
-   * 获取数据的方法
+   * 获取数据
+   * @param query 查询条件
    */
-  fetch: {
-    (key?: string | number): Promise<T>
-  }
+  fetch(query?: any): Promise<T>
+  /**
+   * 计算 hash 值
+   * @param query 查询条件
+   */
+  hash?(query?: any): string
 }
 /**
  * @file jfetchs
@@ -27,8 +32,8 @@ export interface ICacheOptions<T> {
  * Cache of fetch data
  * @author
  *   zswang (http://weibo.com/zswang)
- * @version 0.1.27
- * @date 2018-09-16
+ * @version 1.0.0
+ * @date 2018-09-26
  */
 export class Cache<T> {
   /**
@@ -57,6 +62,13 @@ export class Cache<T> {
     if (!this.options.store) {
       this.options.store = new MemoryStore<T>()
     }
+    if (!this.options.hash) {
+      this.options.hash = query => {
+        return createHash('sha1')
+          .update(JSON.stringify(query))
+          .digest('hex')
+      }
+    }
   }
   /**
    * 获取数据 Fetch cached data
@@ -68,10 +80,16 @@ export class Cache<T> {
   expire: 1,
   fetch: (() => {
     let count = 0
-    return key => {
-      return Promise.resolve(`cache1 ${key}${count++}`)
+    return query => {
+      return Promise.resolve(`cache1 ${query}${count++}`)
     }
   })(),
+  hash: query => {
+    if (['string', 'number', 'boolean'].includes(typeof query)) {
+      return String(query)
+    }
+    return JSON.stringify(query)
+  },
 })
 cache1.fetch('c').then(data => {
   console.log(data)
@@ -203,11 +221,11 @@ cache5.fetch(8).catch(err => {
     ```js
     let cache6 = new jfetchs.Cache({
   debug: true,
-  fetch: key => {
-    if (key === 6) {
+  fetch: query => {
+    if (query === 6) {
       return Promise.resolve(666)
     }
-    return Promise.reject(`cache6 ${key} error`)
+    return Promise.reject(`cache6 ${query} error`)
   },
 })
 cache6.fetch('ok').catch(err => {
@@ -258,7 +276,8 @@ setTimeout(() => {
 }, 100)
     ```
    */
-  fetch(key: string | number = ''): Promise<T> {
+  fetch(query: any = ''): Promise<T> {
+    let key = this.options.hash(query)
     // 日志前缀
     const prefix =
       typeof this.options.debug === 'string'
@@ -269,7 +288,7 @@ setTimeout(() => {
     // 数据正在获取中
     if (this.fetching[key]) {
       if (this.options.debug) {
-        console.log(`jfetchs/src/index.ts:115${prefix} fetching in queue`)
+        console.log(`jfetchs/src/index.ts:129${prefix} fetching in queue`)
       }
       return new Promise((resolve, reject) => {
         this.queue[key] = this.queue[key] || []
@@ -284,17 +303,17 @@ setTimeout(() => {
       return new Promise((resolve, reject) => {
         if (data !== undefined) {
           if (this.options.debug) {
-            console.log(`jfetchs/src/index.ts:131${prefix} hitting cache`)
+            console.log(`jfetchs/src/index.ts:145${prefix} hitting cache`)
           }
           this.fetching[key] = false
           return resolve(data)
         }
         if (this.options.debug) {
-          console.log(`jfetchs/src/index.ts:138${prefix} missing cache`)
+          console.log(`jfetchs/src/index.ts:152${prefix} missing cache`)
         }
         this.flush(key)
         this.options
-          .fetch(key)
+          .fetch(query)
           .then(data => {
             return this.options.store
               .save(key, data, this.options.expire)

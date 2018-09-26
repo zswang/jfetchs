@@ -1,5 +1,6 @@
 import { ICacheStore } from 'jfetchs-util'
 import { MemoryStore } from 'jfetchs-memory'
+import { createHash } from 'crypto'
 
 export { MemoryStore }
 export interface ICacheOptions<T> {
@@ -16,11 +17,15 @@ export interface ICacheOptions<T> {
    */
   expire?: number
   /**
-   * 获取数据的方法
+   * 获取数据
+   * @param query 查询条件
    */
-  fetch: {
-    (key?: string | number): Promise<T>
-  }
+  fetch(query?: any): Promise<T>
+  /**
+   * 计算 hash 值
+   * @param query 查询条件
+   */
+  hash?(query?: any): string
 }
 
 /*<jdists encoding="ejs" data="../package.json">*/
@@ -70,6 +75,13 @@ export class Cache<T> {
     if (!this.options.store) {
       this.options.store = new MemoryStore<T>()
     }
+    if (!this.options.hash) {
+      this.options.hash = query => {
+        return createHash('sha1')
+          .update(JSON.stringify(query))
+          .digest('hex')
+      }
+    }
   }
 
   /**
@@ -100,7 +112,9 @@ export class Cache<T> {
     (*<jdists import="?debug[desc='resume']" />*)
     ```
    */
-  fetch(key: string | number = ''): Promise<T> {
+  fetch(query: any = ''): Promise<T> {
+    let key = this.options.hash(query)
+
     // 日志前缀
     const prefix =
       typeof this.options.debug === 'string'
@@ -140,7 +154,7 @@ export class Cache<T> {
 
         this.flush(key)
         this.options
-          .fetch(key)
+          .fetch(query)
           .then(data => {
             return this.options.store
               .save(key, data, this.options.expire)
@@ -190,10 +204,16 @@ let cache1 = new jfetchs.Cache({
   expire: 1,
   fetch: (() => {
     let count = 0
-    return key => {
-      return Promise.resolve(`cache1 ${key}${count++}`)
+    return query => {
+      return Promise.resolve(`cache1 ${query}${count++}`)
     }
   })(),
+  hash: query => {
+    if (['string', 'number', 'boolean'].includes(typeof query)) {
+      return String(query)
+    }
+    return JSON.stringify(query)
+  },
 })
 
 cache1.fetch('c').then(data => {
@@ -343,11 +363,11 @@ cache5.fetch(8).catch(err => {
 /*<debug desc="key">*/
 let cache6 = new jfetchs.Cache({
   debug: true,
-  fetch: key => {
-    if (key === 6) {
+  fetch: query => {
+    if (query === 6) {
       return Promise.resolve(666)
     }
-    return Promise.reject(`cache6 ${key} error`)
+    return Promise.reject(`cache6 ${query} error`)
   },
 })
 
