@@ -185,9 +185,10 @@ export class Cache<T> {
   }
   /**
    * 移除缓存 Remove cached data
-   * @param key 缓存标志，默认: ''
+   * @param query 查询条件
    */
-  flush(key: string | number = ''): Promise<boolean> {
+  flush(query: any = ''): Promise<boolean> {
+    let key = this.options.hash(query)
     return this.options.store.remove(key)
   }
 }

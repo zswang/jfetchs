@@ -32,8 +32,8 @@ export interface ICacheOptions<T> {
  * Cache of fetch data
  * @author
  *   zswang (http://weibo.com/zswang)
- * @version 1.0.0
- * @date 2018-09-26
+ * @version 1.0.3
+ * @date 2018-09-28
  */
 export class Cache<T> {
   /**
@@ -344,9 +344,10 @@ setTimeout(() => {
   }
   /**
    * 移除缓存 Remove cached data
-   * @param key 缓存标志，默认: ''
+   * @param query 查询条件
    */
-  flush(key: string | number = ''): Promise<boolean> {
+  flush(query: any = ''): Promise<boolean> {
+    let key = this.options.hash(query)
     return this.options.store.remove(key)
   }
 }
