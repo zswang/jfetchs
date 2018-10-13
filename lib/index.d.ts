@@ -17,8 +17,9 @@ export interface ICacheOptions<T> {
     /**
      * 获取数据
      * @param query 查询条件
+     * @param key hash 键值
      */
-    fetch(query?: any): Promise<T>;
+    fetch(query?: any, key?: string): Promise<T>;
     /**
      * 计算 hash 值
      * @param query 查询条件
@@ -31,8 +32,8 @@ export interface ICacheOptions<T> {
  * Cache of fetch data
  * @author
  *   zswang (http://weibo.com/zswang)
- * @version 1.0.3
- * @date 2018-09-28
+ * @version 1.0.4
+ * @date 2018-10-12
  */
 export declare class Cache<T> {
     /**
@@ -63,7 +64,7 @@ export declare class Cache<T> {
       }
     })(),
     hash: query => {
-      if (['string', 'number', 'boolean'].includes(typeof query)) {
+      if (['string', 'number', 'boolean'].indexOf(typeof query) >= 0) {
         return String(query)
       }
       return JSON.stringify(query)
@@ -164,7 +165,11 @@ export declare class Cache<T> {
       ```js
       let cache4 = new jfetchs.Cache({
     debug: true,
-    fetch: () => {
+    fetch: (query, key) => {
+      console.log(query)
+      // >
+      console.log(key)
+      // > dd29ecf524b030a65261e3059c48ab9e1ecb2585
       return Promise.reject('cache4 error')
     },
   })

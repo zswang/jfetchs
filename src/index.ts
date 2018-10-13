@@ -19,8 +19,9 @@ export interface ICacheOptions<T> {
   /**
    * 获取数据
    * @param query 查询条件
+   * @param key hash 键值
    */
-  fetch(query?: any): Promise<T>
+  fetch(query?: any, key?: string): Promise<T>
   /**
    * 计算 hash 值
    * @param query 查询条件
@@ -154,7 +155,7 @@ export class Cache<T> {
 
         this.flush(key)
         this.options
-          .fetch(query)
+          .fetch(query, key)
           .then(data => {
             return this.options.store
               .save(key, data, this.options.expire)
@@ -210,7 +211,7 @@ let cache1 = new jfetchs.Cache({
     }
   })(),
   hash: query => {
-    if (['string', 'number', 'boolean'].includes(typeof query)) {
+    if (['string', 'number', 'boolean'].indexOf(typeof query) >= 0) {
       return String(query)
     }
     return JSON.stringify(query)
@@ -323,7 +324,11 @@ setTimeout(() => {
 /*<debug desc="reject">*/
 let cache4 = new jfetchs.Cache({
   debug: true,
-  fetch: () => {
+  fetch: (query, key) => {
+    console.log(query)
+    // >
+    console.log(key)
+    // > dd29ecf524b030a65261e3059c48ab9e1ecb2585
     return Promise.reject('cache4 error')
   },
 })

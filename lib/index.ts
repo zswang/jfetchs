@@ -18,8 +18,9 @@ export interface ICacheOptions<T> {
   /**
    * 获取数据
    * @param query 查询条件
+   * @param key hash 键值
    */
-  fetch(query?: any): Promise<T>
+  fetch(query?: any, key?: string): Promise<T>
   /**
    * 计算 hash 值
    * @param query 查询条件
@@ -32,8 +33,8 @@ export interface ICacheOptions<T> {
  * Cache of fetch data
  * @author
  *   zswang (http://weibo.com/zswang)
- * @version 1.0.3
- * @date 2018-09-28
+ * @version 1.0.4
+ * @date 2018-10-12
  */
 export class Cache<T> {
   /**
@@ -85,7 +86,7 @@ export class Cache<T> {
     }
   })(),
   hash: query => {
-    if (['string', 'number', 'boolean'].includes(typeof query)) {
+    if (['string', 'number', 'boolean'].indexOf(typeof query) >= 0) {
       return String(query)
     }
     return JSON.stringify(query)
@@ -186,7 +187,11 @@ setTimeout(() => {
     ```js
     let cache4 = new jfetchs.Cache({
   debug: true,
-  fetch: () => {
+  fetch: (query, key) => {
+    console.log(query)
+    // >
+    console.log(key)
+    // > dd29ecf524b030a65261e3059c48ab9e1ecb2585
     return Promise.reject('cache4 error')
   },
 })
@@ -288,7 +293,7 @@ setTimeout(() => {
     // 数据正在获取中
     if (this.fetching[key]) {
       if (this.options.debug) {
-        console.log(`jfetchs/src/index.ts:129${prefix} fetching in queue`)
+        console.log(`jfetchs/src/index.ts:130${prefix} fetching in queue`)
       }
       return new Promise((resolve, reject) => {
         this.queue[key] = this.queue[key] || []
@@ -303,17 +308,17 @@ setTimeout(() => {
       return new Promise((resolve, reject) => {
         if (data !== undefined) {
           if (this.options.debug) {
-            console.log(`jfetchs/src/index.ts:145${prefix} hitting cache`)
+            console.log(`jfetchs/src/index.ts:146${prefix} hitting cache`)
           }
           this.fetching[key] = false
           return resolve(data)
         }
         if (this.options.debug) {
-          console.log(`jfetchs/src/index.ts:152${prefix} missing cache`)
+          console.log(`jfetchs/src/index.ts:153${prefix} missing cache`)
         }
         this.flush(key)
         this.options
-          .fetch(query)
+          .fetch(query, key)
           .then(data => {
             return this.options.store
               .save(key, data, this.options.expire)

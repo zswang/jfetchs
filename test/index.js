@@ -24,7 +24,7 @@ describe("src/index.ts", function () {
     }
   })(),
   hash: query => {
-    if (['string', 'number', 'boolean'].includes(typeof query)) {
+    if (['string', 'number', 'boolean'].indexOf(typeof query) >= 0) {
       return String(query)
     }
     return JSON.stringify(query)
@@ -128,7 +128,11 @@ setTimeout(() => {
     examplejs_printLines = [];
     let cache4 = new jfetchs.Cache({
   debug: true,
-  fetch: () => {
+  fetch: (query, key) => {
+    examplejs_print(query)
+    // >
+    examplejs_print(key)
+    assert.equal(examplejs_printLines.join("\n"), "dd29ecf524b030a65261e3059c48ab9e1ecb2585"); examplejs_printLines = [];
     return Promise.reject('cache4 error')
   },
 })
